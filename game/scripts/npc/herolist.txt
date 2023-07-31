@@ -1,5 +1,0 @@
-"CustomHeroList"
-{
-    "npc_dota_hero_phantom_assassin"		"1"
-    "npc_dota_hero_troll_warlord"			"1"
-}
