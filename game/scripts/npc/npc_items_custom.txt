@@ -1,0 +1,27 @@
+"DOTAAbilities"
+{
+    "item_rogue_blade" {
+        "BaseClass" "item_lua"
+        "AbilityTextureName" "item_quelling_blade"
+        "ScriptFile" "items/item_rogue_blade"
+        "AbilityType" "DOTA_ABILITY_TYPE_BASIC"
+		"AbilityBehavior" "DOTA_ABILITY_BEHAVIOR_UNIT_TARGET"
+		"AbilityUnitTargetTeam" "DOTA_UNIT_TARGET_TEAM_CUSTOM"
+		"AbilityUnitTargetType" "DOTA_UNIT_TARGET_TREE"
+		"AbilityUnitTargetFlags" "DOTA_UNIT_TARGET_FLAG_MAGIC_IMMUNE_ENEMIES"
+		"SpellDispellableType" "SPELL_DISPELLABLE_NO"
+		"SpellImmunityType" "SPELL_IMMUNITY_ENEMIES_YES"
+        "AbilityCastRange" "100"
+		"AbilityCastRangeBuffer" "250"
+		"AbilityCastPoint" "0.1"
+        "AbilityCooldown" "4"
+		"AbilityManaCost" "0"
+        "ItemKillable" "0"
+        "ItemSellable" "0"
+        "ItemPurchasable" "0"
+        "ItemDroppable" "0"
+        "ItemShareability" "ITEM_NOT_SHAREABLE"
+        "ItemDisassembleRule" "DOTA_ITEM_DISASSEMBLE_NEVER"
+        "ItemQuality"    "artifact"
+    }
+}
