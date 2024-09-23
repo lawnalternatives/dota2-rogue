@@ -2,6 +2,7 @@ import { BaseModifier, registerModifier } from "../lib/dota_ts_adapter";
 
 @registerModifier()
 export class modifier_deaths_bounty extends BaseModifier {
+    private missed_hit: Function = () => { };
     DeclareFunctions(): ModifierFunction[] {
         return [ModifierFunction.ON_DEATH];
     }
@@ -19,9 +20,13 @@ export class modifier_deaths_bounty extends BaseModifier {
             return;
         }
         let player: CDOTA_BaseNPC = PlayerResource.GetPlayer(0)?.GetAssignedHero()!;
-        if (event.attacker == player || event.unit != this.GetParent()) {
+        if (event.unit != this.GetParent())
+            return;
+        if (event.attacker == player) {
+            EmitGlobalSound("Rogue.LastHit");
             return;
         }
-        ApplyDamage({ attacker: this.GetParent(), victim: player, damage_type: DamageTypes.PURE, damage: 10, ability: this.GetAbility() });
+        EmitGlobalSound("Rogue.MissedHit");
+        GameRules.Addon.OnMissedHit();
     }
 }

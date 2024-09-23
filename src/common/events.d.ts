@@ -13,17 +13,10 @@
 
 // To declare an event for use, add it to this table with the type of its data
 interface CustomGameEventDeclarations {
-    example_event: ExampleEventData,
-    ui_panel_closed: UIPanelClosedEventData
+    lifes_changed: LifesChanged
 }
 
-// Define the type of data sent by the example_event event
-interface ExampleEventData {
-    myNumber: number;
-    myBoolean: boolean;
-    myString: string;
-    myArrayOfNumbers: number[]
+interface LifesChanged {
+    max: number;
+    current: number;
 }
-
-// This event has no data
-interface UIPanelClosedEventData {}

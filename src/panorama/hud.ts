@@ -1,32 +1,5 @@
 $.Msg("Hud panorama loaded");
 
-function OnCloseButtonClicked() {
-    $.Msg("Example close button clicked");
-
-    // Find panel by id
-    const examplePanel = $("#ExamplePanel");
-
-    // Remove panel
-    examplePanel.DeleteAsync(0);
-
-    // Send event to server
-    GameEvents.SendCustomGameEventToServer("ui_panel_closed", {});
-}
-
-GameEvents.Subscribe("example_event", (data: NetworkedData<ExampleEventData>) => {
-    const myNumber = data.myNumber;
-    const myString = data.myString;
-
-    const myBoolean = data.myBoolean; // After sending to client this is now type 0 | 1!
-
-    const myArrayObject = data.myArrayOfNumbers; // After sending this is now an object!
-
-    const myArray = toArray(myArrayObject); // We can turn it back into an array ourselves.
-
-    $.Msg("Received example event", myNumber, myString, myBoolean, myArrayObject, myArray);
-
-});
-
 /**
  * Turn a table object into an array.
  * @param obj The object to transform to an array.
@@ -34,7 +7,7 @@ GameEvents.Subscribe("example_event", (data: NetworkedData<ExampleEventData>) =>
  */
 function toArray<T>(obj: Record<number, T>): T[] {
     const result = [];
-    
+
     let key = 1;
     while (obj[key]) {
         result.push(obj[key]);
@@ -43,3 +16,39 @@ function toArray<T>(obj: Record<number, T>): T[] {
 
     return result;
 }
+
+function* range(max: number) {
+    for (let i = 0; i < max; ++i)
+        yield i;
+}
+
+class CustomUI {
+    panel_root: Panel;
+    panel_lifes: Panel;
+
+    constructor(panel: Panel) {
+        $.Msg("CustomUI constructor");
+        this.panel_root = panel;
+        this.panel_lifes = panel.FindChild("Lifes")!;
+        this.panel_lifes.RemoveAndDeleteChildren();
+        GameEvents.Subscribe<LifesChanged>("lifes_changed", (event) => this.OnLifesChanged(event));
+    }
+
+    OnLifesChanged(event: LifesChanged) {
+        $.Msg("OnLifesChanged: " + event.current + " / " + event.max);
+        this.panel_lifes.RemoveAndDeleteChildren();
+        for (let i of range(event.max)) {
+            const panel = $.CreatePanel("Panel", this.panel_lifes, "");
+            panel.BLoadLayoutSnippet("Life");
+            const image = panel.FindChildTraverse("LifeImage") as ImagePanel;
+            image.SetImage("file://{resources}/images/custom_game/tstl.png");
+            if (i < event.current) {
+                image.AddClass("LifePresent");
+            } else {
+                image.AddClass("LifeMissing");
+            }
+        }
+    }
+}
+
+let ui = new CustomUI($.GetContextPanel());
