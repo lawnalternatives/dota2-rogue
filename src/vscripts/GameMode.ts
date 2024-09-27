@@ -1,6 +1,7 @@
 import { reloadable } from "./lib/tstl-utils";
 import { modifier_my_hero } from "./modifiers/modifier_my_hero";
 import { modifier_deaths_bounty } from "./modifiers/modifier_deaths_bounty";
+import { modifier_forest_for_the_tree } from "./modifiers/modifier_forest_for_the_tree";
 
 declare global {
     interface CDOTAGameRules {
@@ -12,10 +13,9 @@ class RGBColor {
     constructor(public red: number, public green: number, public blue: number) { }
 }
 
-class CreepTeam {
-    constructor(public readonly dotaTeam: DotaTeam, public readonly name: string, public readonly color: RGBColor) { }
+class UniquelyNamedEntityCache {
     private cache = new Map<string, CBaseEntity>();
-    private Cached(name: string): CBaseEntity {
+    public Get(name: string): CBaseEntity {
         let ent = this.cache.get(name);
         ent ??= Entities.FindByName(undefined, name);
         assert(ent);
@@ -23,8 +23,13 @@ class CreepTeam {
         this.cache.set(name, ent);
         return ent;
     }
-    public Spawner(): CBaseEntity { return this.Cached(`spawner_${this.name}`); }
-    public InitialGoal(): CBaseEntity { return this.Cached(`pathcorner_${this.name}_1`); }
+}
+let entcache = new UniquelyNamedEntityCache;
+
+class CreepTeam {
+    constructor(public readonly dotaTeam: DotaTeam, public readonly name: string, public readonly color: RGBColor) { }
+    public Spawner(): CBaseEntity { return entcache.Get(`spawner_${this.name}`); }
+    public InitialGoal(): CBaseEntity { return entcache.Get(`pathcorner_${this.name}_1`); }
 }
 
 function* range(max: number) {
@@ -38,12 +43,14 @@ const CREEP_TEAMS = [GOOD_CREEP_TEAM, BAD_CREEP_TEAM];
 
 const TP_ITEM = "item_blink";
 const NEUTRAL_ITEM = "item_rogue_blade";
+const ARENA_CENTER = "arena_center";
 
 @reloadable
 export class GameMode {
     private waveNumber: number = 0;
     private waveCreeps: CDOTA_BaseNPC[] = [];
     private lifes = { max: 5, current: 5 };
+    private startTree?: CBaseAnimatingActivity;
 
     public static Precache(this: void, context: CScriptPrecacheContext) {
         PrecacheResource("soundfile", "soundevents/custom_sounds.vsndevts", context);
@@ -148,11 +155,10 @@ export class GameMode {
             Timers.CreateTimer(0.1, () => GameRules.MakeTeamLose(DotaTeam.GOODGUYS));
     }
 
-    public OnChopTree(): void {
-        if (this.lifes.current < this.lifes.max) {
-            this.lifes.current += 1;
-            this.SendLifesChanged();
-        }
+    public OnChopTree(target: CDOTA_BaseNPC): void {
+        if (target.GetCursorPosition() != this.ArenaCenter().GetOrigin())
+            return;
+        this.GetPlayer().GetAssignedHero().RemoveModifierByName(modifier_forest_for_the_tree.name);
     }
 
     private StartGame(): void {
@@ -161,7 +167,13 @@ export class GameMode {
         this.StartWave();
     }
 
+    private ArenaCenter(): CBaseEntity {
+        return entcache.Get(ARENA_CENTER);
+    }
+
     private StartWave(): void {
+        CreateTempTree(this.ArenaCenter().GetOrigin(), Infinity);
+        modifier_forest_for_the_tree.apply(this.GetPlayer().GetAssignedHero());
         this.waveNumber++;
         let creepCount = 1 + Math.floor(Math.log2(this.waveNumber));
         let bountyBonus = 10 * this.waveNumber;

@@ -2,7 +2,6 @@ import { BaseModifier, registerModifier } from "../lib/dota_ts_adapter";
 
 @registerModifier()
 export class modifier_deaths_bounty extends BaseModifier {
-    private missed_hit: Function = () => { };
     DeclareFunctions(): ModifierFunction[] {
         return [ModifierFunction.ON_DEATH];
     }
